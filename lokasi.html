@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokasi Akurat Anda</title>
+</head>
+<body>
+    <h1>Deteksi Lokasi Akurat Anda</h1>
+    <p id="location">Mendeteksi lokasi...</p>
+    <p id="accuracy"></p>
+    <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
+
+    <script>
+        // Periksa apakah Geolocation API didukung oleh browser
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+
+                    // Tampilkan latitude, longitude, dan akurasi
+                    document.getElementById("location").innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                    document.getElementById("accuracy").innerText = `Akurasi: ±${accuracy} meter`;
+
+                    // Tampilkan peta menggunakan OpenStreetMap
+                    const map = L.map('map').setView([latitude, longitude], 18); // Zoom level 18 untuk akurasi tinggi
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    // Tambahkan marker untuk lokasi pengguna
+                    L.marker([latitude, longitude])
+                        .addTo(map)
+                        .bindPopup('Lokasi Anda Sekarang (Akurasi: ±' + accuracy + ' meter)')
+                        .openPopup();
+                },
+                (error) => {
+                    // Error handling jika lokasi tidak bisa dideteksi
+                    let errorMessage = '';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "Izin lokasi ditolak.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "Lokasi tidak tersedia.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "Permintaan lokasi waktu habis.";
+                            break;
+                        default:
+                            errorMessage = "Terjadi kesalahan tidak dikenal.";
+                    }
+                    document.getElementById("location").innerText = errorMessage;
+                },
+                {
+                    enableHighAccuracy: true, // Aktifkan akurasi tinggi
+                    timeout: 10000, // Waktu tunggu (10 detik)
+                    maximumAge: 0 // Tidak menggunakan cache
+                }
+            );
+        } else {
+            document.getElementById("location").innerText = "Geolocation tidak didukung oleh browser Anda.";
+        }
+    </script>
+
+    <!-- Tambahkan OpenStreetMap CSS dan JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>
